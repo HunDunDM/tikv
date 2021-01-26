@@ -981,6 +981,18 @@ impl<T: PdClient> Runnable<Task> for Runner<T> {
                     let written_bytes_delta = hb_task.written_bytes - peer_stat.last_written_bytes;
                     let written_keys_delta = hb_task.written_keys - peer_stat.last_written_keys;
                     let mut last_report_ts = peer_stat.last_report_ts;
+
+                    if hb_task.written_bytes < peer_stat.last_written_bytes {
+                        error!(
+                            "negative heartbeat request";
+                            "region_id" => hb_task.region.id,
+                            "written_bytes" => hb_task.written_bytes,
+                            "last_written_bytes" => peer_stat.last_written_bytes,
+                            "written_keys" => hb_task.written_keys,
+                            "last_written_keys" => peer_stat.last_written_keys,
+                        );
+                    }
+                    
                     peer_stat.last_written_bytes = hb_task.written_bytes;
                     peer_stat.last_written_keys = hb_task.written_keys;
                     peer_stat.last_read_bytes = peer_stat.read_bytes;

@@ -480,11 +480,27 @@ impl<W: WriteBatch + WriteBatchVecExt<RocksEngine>> ApplyContext<W> {
     }
 
     pub fn delta_bytes(&self) -> u64 {
-        self.kv_wb().data_size() as u64 - self.kv_wb_last_bytes
+        let cur = self.kv_wb().data_size() as u64;
+        if cur < self.kv_wb_last_bytes {
+            error!(
+                "negative wb bytes";
+                "cur_bytes" => cur,
+                "last_bytes" => self.kv_wb_last_bytes,
+            );
+        }
+        cur - self.kv_wb_last_bytes
     }
 
     pub fn delta_keys(&self) -> u64 {
-        self.kv_wb().count() as u64 - self.kv_wb_last_keys
+        let cur = self.kv_wb().count() as u64;
+        if cur < self.kv_wb_last_keys {
+            error!(
+                "negative wb bytes";
+                "cur_bytes" => cur,
+                "last_bytes" => self.kv_wb_last_keys,
+            );
+        }
+        cur - self.kv_wb_last_keys
     }
 
     #[inline]
